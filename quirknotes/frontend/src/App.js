@@ -117,18 +117,8 @@ function App() {
 
   // TODO: Update local state by patching note w/ ID `_id`, given (title, content) //
   const patchNoteState = (_id, title, content) => {
-    setNotes((prevNotes) =>
-      prevNotes.map((entry) =>
-        entry._id === _id
-          ? {
-              ...entry,
-              title: title !== undefined ? title : entry.title,
-              content: content !== undefined ? content : entry.content,
-            }
-          : entry
-      )
-    );
-  };
+    setNotes((prevNotes) => prevNotes.map((entry) => entry._id === _id ? {_id, title, content} : entry))
+  }
   
 
   return (

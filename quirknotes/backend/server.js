@@ -118,13 +118,23 @@ app.delete("/deleteAllNotes", async (req, res) => {
 });
   
 // Patch a note
+/* 
+
+  I removed any mention of the .decoded keyword, as it was causing 
+  500 (unknown server-side) errors. I don't know how to fix it, but
+  patching now works without refreshing the page.
+
+*/
+// Patch a note
 app.patch("/patchNote/:noteId", express.json(), async (req, res) => {
   try {
+    // Basic param checking
     const noteId = req.params.noteId;
     if (!ObjectId.isValid(noteId)) {
       return res.status(400).json({ error: "Invalid note ID." });
     }
 
+    // Basic body request check
     const { title, content } = req.body;
     if (!title && !content) {
       return res
@@ -132,72 +142,25 @@ app.patch("/patchNote/:noteId", express.json(), async (req, res) => {
         .json({ error: "Must have at least one of title or content." });
     }
 
+    
+    // Find note with given ID
     const collection = db.collection(COLLECTIONS.notes);
-    const data = await collection.updateOne(
-      { _id: new ObjectId(noteId) },
-      {
-        $set: {
-          ...(title && { title }),
-          ...(content && { content }),
-        },
+    const data = await collection.updateOne({
+      _id: new ObjectId(noteId),
+    }, {
+      $set: {
+        ...(title && {title}),
+        ...(content && {content})
       }
-    );
+    });
 
     if (data.matchedCount === 0) {
       return res
         .status(404)
         .json({ error: "Unable to find note with given ID." });
     }
-
     res.json({ response: `Document with ID ${noteId} patched.` });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message})
   }
-});
-
-/* Original patch function. 
-
-  I removed any mention of the .decoded keyword, as it was causing 
-  500 (unknown server-side) errors. I don't know how to fix it, but
-  patching now works if you refresh the page.
-
-*/
-// app.patch("/patchNote/:noteId", express.json(), async (req, res) => {
-//   try {
-//     // Basic param checking
-//     const noteId = req.params.noteId;
-//     if (!ObjectId.isValid(noteId)) {
-//       return res.status(400).json({ error: "Invalid note ID." });
-//     }
-
-//     // Basic body request check
-//     const { title, content } = req.body;
-//     if (!title && !content) {
-//       return res
-//         .status(400)
-//         .json({ error: "Must have at least one of title or content." });
-//     }
-
-    
-//     // Find note with given ID
-//     const collection = db.collection(COLLECTIONS.notes);
-//     const data = await collection.updateOne({
-//       username: decoded.username,
-//       _id: new ObjectId(noteId),
-//     }, {
-//       $set: {
-//         ...(title && {title}),
-//         ...(content && {content})
-//       }
-//     });
-
-//     if (data.matchedCount === 0) {
-//       return res
-//         .status(404)
-//         .json({ error: "Unable to find note with given ID." });
-//     }
-//     res.json({ response: `Document with ID ${noteId} patched.` });
-//   } catch (error) {
-//     res.status(500).json({error: error.message})
-//   }
-// })
+})

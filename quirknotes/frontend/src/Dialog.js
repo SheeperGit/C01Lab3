@@ -54,16 +54,20 @@ function Dialog({open, initialNote, closeDialog, postNote: postNoteState, patchN
         } 
     }
 
-    // TODO: Patch note with ID `noteId` in the backend and update local state //
-    const patchNote = async () => {
-        if (!note || !note.title || !note.content || !note._id) {
-          return;
-        }
-      
-        setStatus("Loading...")
+    if (!note || !note.title || !note.content || !note._id) {
+        return;
+      }
 
+    // TODO: Patch note with ID `noteId` in the backend and update local state //
+    const patchNote = () => {
+        if (!note || !note.title || !note.content || !note._id) {
+            return;
+        }
+
+        setStatus("Loading...")
+        
         try {
-            await fetch(`http://localhost:4000/patchNote/${note._id}`,
+            fetch(`http://localhost:4000/patchNote/${note._id}`,
                 {method: "PATCH",
                 headers: {
                     "Content-Type": "application/json"
@@ -71,21 +75,20 @@ function Dialog({open, initialNote, closeDialog, postNote: postNoteState, patchN
                 body: JSON.stringify({title: note.title, content: note.content})} )
             .then(async (response) => {
                 if (!response.ok) {
-                    setStatus(`Error trying to post note`)
+                    setStatus(`Error trying to patch note`)
                     console.log("Served failed:", response.status)
                 } else {
-                    await response.json().then((data) => {
-                        patchNoteState(data._id, note.title, note.content)
-                        //setStatus("Note patched!") // Can be replaced with close(), if you want!
-                        close()
+                    await response.json().then(() => {
+                        patchNoteState(note._id, note.title, note.content)
+                        setStatus("Note patched!")
                     }) 
                 }
             })
         } catch (error) {
-            setStatus("Error trying to post note")
+            setStatus("Error trying to patch note")
             console.log("Fetch function failed:", error)
-        } 
-      };
+        }
+    }
       
     return (
         <dialog open={open} style={DialogStyle.dialog}>
