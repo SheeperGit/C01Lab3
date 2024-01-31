@@ -39,13 +39,46 @@ function App() {
   }, [])
 
   const deleteNote = (entry) => {
-    // Code for DELETE here
-  }
+    try {
+      fetch(`http://localhost:4000/deleteNote/${entry._id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.log("Failed to delete note:", response.status);
+        } else {
+          // Update state after successful deletion //
+          deleteNoteState(entry._id);
+        }
+      });
+    } catch (error) {
+      console.log("Failed to delete note:", error);
+    }
+  };
 
   const deleteAllNotes = () => {
-    // Code for DELETE all notes here
-  }
-
+    try {
+      fetch("http://localhost:4000/deleteAllNotes", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.log("Failed to delete all notes:", response.status);
+        } else {
+          // Update state after successful (mass) deletion of all notes //
+          deleteAllNotesState();
+        }
+      });
+    } catch (error) {
+      console.log("Failed to delete all notes:", error);
+    }
+  };
   
   // -- Dialog functions --
   const editNote = (entry) => {
@@ -72,17 +105,31 @@ function App() {
     setNotes((prevNotes) => [...prevNotes, {_id, title, content}])
   }
 
-  const deleteNoteState = () => {
-    // Code for modifying state after DELETE here
-  }
+  // TODO: Update local state by removing the note with ID `noteId //
+  const deleteNoteState = (noteId) => {
+    setNotes((prevNotes) => prevNotes.filter((entry) => entry._id !== noteId));
+  };
 
+  // TODO: Update local state by removing all notes //
   const deleteAllNotesState = () => {
-    // Code for modifying state after DELETE all here
+    setNotes([]);
   }
 
+  // TODO: Update local state by patching note w/ ID `_id`, given (title, content) //
   const patchNoteState = (_id, title, content) => {
-    // Code for modifying state after PATCH here
-  }
+    setNotes((prevNotes) =>
+      prevNotes.map((entry) =>
+        entry._id === _id
+          ? {
+              ...entry,
+              title: title !== undefined ? title : entry.title,
+              content: content !== undefined ? content : entry.content,
+            }
+          : entry
+      )
+    );
+  };
+  
 
   return (
     <div className="App">
@@ -130,7 +177,7 @@ function App() {
           initialNote={dialogNote}
           closeDialog={closeDialog}
           postNote={postNoteState}
-          // patchNote={patchNoteState}
+          patchNote={patchNoteState}
           />
 
       </header>
